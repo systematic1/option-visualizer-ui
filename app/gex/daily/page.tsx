@@ -225,7 +225,6 @@ export default function GexDaily() {
                         "& .MuiChartsLegend-label": {
                             color: "#cccccc !important"
                         }
-
                     }}
                 />
             </Box>
