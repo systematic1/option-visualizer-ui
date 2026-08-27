@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { 
+/*import { 
   ResponsiveContainer, 
   BarChart, 
   Bar, 
@@ -11,9 +11,22 @@ import {
   ReferenceLine,
   Legend, 
   LabelList
-} from 'recharts';
+} from 'recharts';*/
+import Box from '@mui/material/Box';
+import { BarChart } from '@mui/x-charts/BarChart';
+import { ChartsReferenceLine } from '@mui/x-charts';
+import Typography from '@mui/material/Typography';
 
 const apiUrlPrefix = "http://localhost:8080";
+
+const _chartTextStyle = {
+    fontSize: 12,
+    fontWeight: 400,
+    fontFamily: 'Roboto, Arial, helvetica, sans-serif'
+};
+const _textColor = {
+    "& text": { fill: "#ffffff" }
+};
  
 export default function GexDaily() {
 
@@ -45,23 +58,24 @@ export default function GexDaily() {
     }
 
     // should be in utility tsx file
-    const convertToChartData = (data: any[]): any[] => {
+    const convertToChartData = (data: any[]): any[] => { 
         // Need to match Call and Put option data to align to 
         const strikes = new Set();
-        const strikeData = [];
+        const strikeData: any[] = [];
         let strike, call, put;
 
         data.forEach(item => strikes.add(item.strikePrice));
         
         strikes.forEach(sp => {
-            call = data.find(item => item.isCall && item.strikePrice === sp);
-            put = data.find(item => item.isPut && item.strikePrice === sp);
+            call = data.find(item => item.call && item.strikePrice === sp);
+            put = data.find(item => item.put && item.strikePrice === sp);
 
             strike = { 
                 strikePrice: sp, 
                 callGex: call?.gex, 
                 putGex: put?.gex, 
-                absGex: Math.abs((call?.gex ?? 0) + (put?.gex ?? 0)), 
+                absGex: Math.abs(call?.gex ?? 0) + Math.abs(put?.gex ?? 0),
+                netGex: (call?.gex ?? 0) + (put?.gex ?? 0), 
                 callVolume: call?.volume ?? 0,
                 putVolume: put?.volume ?? 0, 
                 callOpenInt: call?.openInterest ?? 0,
@@ -72,7 +86,7 @@ export default function GexDaily() {
             strike = undefined;
         });
 
-        return [...strikes];
+        return strikeData;
     }
   
     useEffect(() => {
@@ -104,7 +118,10 @@ export default function GexDaily() {
         if (selectedExpDate && selectedSnapshot) {
             fetch(encodeURI(`${apiUrlPrefix}/OptionChain/Data/BySnapshot?symbol=${selectedSymbol}&expiration=${selectedExpDate}&dateTime=${selectedSnapshot}`))
                 .then(response => response.json())
-                .then(data => setChartData(convertToChartData(data) as never[]));
+                .then(data => { 
+                    const convertedData = convertToChartData(data);
+                    setChartData(convertedData as []);
+                });
         }
     }, [selectedSnapshot]); 
 
@@ -138,7 +155,7 @@ export default function GexDaily() {
             </div>
         </header>
         <div className="chart-container">
-            <ResponsiveContainer>
+            {/*<ResponsiveContainer>
                 <BarChart data={chartData}>
                     <CartesianGrid 
                         strokeDasharray="3, 3" 
@@ -153,15 +170,65 @@ export default function GexDaily() {
                     <Bar 
                         dataKey="callGex"
                         fill="#11d03e" 
-                        label={true}
+                        label={false}
                     />
                     <Bar
                         dataKey="putGex"
                         fill="#e64640"
-                        label={true}
+                        label={false}
                     />
                 </BarChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer>*/}
+            <Box sx={{ width: "100%", height: "80vh" }}>
+                <Typography variant="h6" component="h2" sx={{ mb: 2, textAlign: 'center', fontWeight: 600, color: "#2ced0c" }}>
+                    Gamma Exposure Distribution
+                </Typography>
+                <BarChart
+                    dataset={chartData}
+                    xAxis={[
+                        { 
+                            scaleType: "band", 
+                            dataKey: "strikePrice",
+                            label: "Strike Prices",
+                            disableTicks: false,
+                        }
+                    ]}
+                    yAxis={[{ width: 100 }]}
+                    series={[
+                        { 
+                            dataKey: 'callGex',
+                            label: 'Call GEX', 
+                            valueFormatter: (value) => new Intl.NumberFormat('en-US').format(value ?? 0),
+                            stack: 'strike' 
+                        },
+                        { 
+                            dataKey: 'putGex',
+                            label: 'Put GEX', 
+                            valueFormatter: (value) => new Intl.NumberFormat('en-US').format(value ?? 0),
+                            stack: 'strike' 
+                        }
+                    ]}
+                    grid={{ horizontal: true }}
+                    sx={{
+                        "& text, & tspan, & .MuiChartsAxis-tickLabel, & .MuiChartsAxis-label": {
+                            fill: "#ffffff !important"
+                        },
+                        "& .MuiChartsAxis-left .MuiChartsAxis-tick, & .MuiChartsAxis-line": {
+                            stroke: "#999999"
+                        },
+                        "& .MuiChartsGrid-horizontalLine": {
+                            stroke: "#cccccc !important", 
+                            strokeDasharray: "2 2",
+                            strokeWidth: 1.0, 
+                            opacity: 0.4
+                        },
+                        "& .MuiChartsLegend-label": {
+                            color: "#cccccc !important"
+                        }
+
+                    }}
+                />
+            </Box>
         </div>
     </>
     );

@@ -4,6 +4,7 @@
   --background: #080808;
   --foreground: #d8d8d8;
   --highlight: #2ced0c;
+   --med-highlight: #0f5c02;
   --dark-highlight: #0f3109;
   --chart-background: #000000;
   --chart-foreground: #ffffff;
@@ -59,9 +60,15 @@ select {
 }
 
 button.nav-button {
-  border-radius: 100%;
-  padding: 10px;
+  height: 40px;
+  padding: 5px 10px;
   color: var(--highlight);
   background: var(--dark-highlight);
+  border: 1px solid var(--med-highlight);
+  border-radius: 20px;
   font-weight: 400;
+}
+
+button.nav-button:hover {
+  background: var(--med-highlight) !important;
 }

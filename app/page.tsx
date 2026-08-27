@@ -1,16 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-const router = useRouter();
-
 export default function Home() {
+    const router = useRouter();
+
     return (
     <>
         <header className="w-full p-5 text-xl">
-            <span className="red font-bold">&gamma;</span> 
+            <span className="red font-bold pr-2">&gamma;</span> 
             Option/Gamma Exposure Visualizer
         </header>
-        <main className="flex flex-col">
+        <main className="flex flex-col p-5">
             <div>
                 <button className="nav-button" onClick={() => router.push("/gex/daily")}>
                     Option GEX (Daily)
