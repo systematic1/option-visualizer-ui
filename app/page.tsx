@@ -1,13 +1,24 @@
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+const router = useRouter();
 
 export default function Home() {
-  return (
-    <main className="flex flex-col">
-      <div>
-        <Link href="/gex/daily">Option GEX (Daily)</Link>
-      </div>      
-    </main>
-  );
+    return (
+    <>
+        <header className="w-full p-5 text-xl">
+            <span className="red font-bold">&gamma;</span> 
+            Option/Gamma Exposure Visualizer
+        </header>
+        <main className="flex flex-col">
+            <div>
+                <button className="nav-button" onClick={() => router.push("/gex/daily")}>
+                    Option GEX (Daily)
+                </button>
+            </div>      
+        </main>
+    </>
+    );
 }
 
 /*    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">

@@ -44,28 +44,35 @@ export default function GexDaily() {
         return hms;
     }
 
+    // should be in utility tsx file
     const convertToChartData = (data: any[]): any[] => {
         // Need to match Call and Put option data to align to 
         const strikes = new Set();
-        data.forEach(item => strikes.add(item.strikePrice));
-        
         const strikeData = [];
         let strike, call, put;
+
+        data.forEach(item => strikes.add(item.strikePrice));
+        
         strikes.forEach(sp => {
-            call = data.find(item => item.isCall() && item.strikePrice === sp);
-            put = data.find(item => item.isPut() && item.strikePrice === sp);
+            call = data.find(item => item.isCall && item.strikePrice === sp);
+            put = data.find(item => item.isPut && item.strikePrice === sp);
 
             strike = { 
                 strikePrice: sp, 
                 callGex: call?.gex, 
                 putGex: put?.gex, 
                 absGex: Math.abs((call?.gex ?? 0) + (put?.gex ?? 0)), 
-                volume: 0, 
-                openInt: 0 
+                callVolume: call?.volume ?? 0,
+                putVolume: put?.volume ?? 0, 
+                callOpenInt: call?.openInterest ?? 0,
+                putOpenInt: put?.openInterest ?? 0 
             };
+
             strikeData.push(strike);
             strike = undefined;
         });
+
+        return [...strikes];
     }
   
     useEffect(() => {
@@ -76,6 +83,7 @@ export default function GexDaily() {
                 setExpirations([]);
             });
     }, []);
+
     useEffect(() => {
         if (selectedSymbol) { 
             fetch(encodeURI(`${apiUrlPrefix}/Metadata/Symbol/${selectedSymbol}/Expirations`))
@@ -83,6 +91,7 @@ export default function GexDaily() {
                 .then(data => setExpirations(data));
         }
     }, [selectedSymbol]);
+
     useEffect(() => {
         if (selectedSymbol && selectedExpDate) {
             fetch(encodeURI(`${apiUrlPrefix}/Metadata/Symbol/${selectedSymbol}/Snapshots?expiration=${selectedExpDate}`))
@@ -90,11 +99,12 @@ export default function GexDaily() {
                 .then(data => setSnapshots(data));
         }
     }, [selectedExpDate]);
+
     useEffect(() => { 
         if (selectedExpDate && selectedSnapshot) {
             fetch(encodeURI(`${apiUrlPrefix}/OptionChain/Data/BySnapshot?symbol=${selectedSymbol}&expiration=${selectedExpDate}&dateTime=${selectedSnapshot}`))
                 .then(response => response.json())
-                .then(data => setChartData(data));
+                .then(data => setChartData(convertToChartData(data) as never[]));
         }
     }, [selectedSnapshot]); 
 
@@ -105,22 +115,22 @@ export default function GexDaily() {
                 Option Gamma Exposure - Daily
             </div>
             <div className="col-span-2 text-right">
-                <select value={selectedSymbol ?? ''} onChange={handleSymbolChange}>
-                    <option key="" value="">---- SYMBOL ----</option>
+                <select value={selectedSymbol ?? ""} onChange={handleSymbolChange}>
+                    <option key="" value="">-- SYMBOL --</option>
                     {symbols && symbols.map(item => (
                         <option key={item} value={item}>{item}</option> 
                     ))}
                 </select>
                  &nbsp;
-                <select value={selectedExpDate ?? ''} onChange={handleExpDateChange}>
-                    <option key="" value="">---- EXP DATE ----</option>
+                <select value={selectedExpDate ?? ""} onChange={handleExpDateChange}>
+                    <option key="" value="">-- EXP DATE --</option>
                     {expirations && expirations.map(item => (
                         <option key={item} value={item}>{item}</option>
                     ))}
                 </select>
                 &nbsp;
-                <select value={selectedSnapshot ?? ''} onChange={handleSnapshotChange}>
-                    <option key="" value="">-- SNAPSHOT TIME --</option>
+                <select value={selectedSnapshot ?? ""} onChange={handleSnapshotChange}>
+                    <option key="" value="">-- SNAPSHOT --</option>
                     {snapshots && snapshots.map(item => (
                         <option key={item} value={item}>{getSnapshotDisplay(item)}</option>
                     ))}
@@ -130,7 +140,10 @@ export default function GexDaily() {
         <div className="chart-container">
             <ResponsiveContainer>
                 <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3, 3" vertical={false} />
+                    <CartesianGrid 
+                        strokeDasharray="3, 3" 
+                        vertical={false} 
+                    />
                     <XAxis 
                         dataKey="strikePrice"
                     />
@@ -138,8 +151,14 @@ export default function GexDaily() {
                     <Legend />
                     <ReferenceLine y={0} stroke="#999" strokeWidth={1.5} />
                     <Bar 
-                        dataKey="gex"
-                        fill="#10b981" 
+                        dataKey="callGex"
+                        fill="#11d03e" 
+                        label={true}
+                    />
+                    <Bar
+                        dataKey="putGex"
+                        fill="#e64640"
+                        label={true}
                     />
                 </BarChart>
             </ResponsiveContainer>

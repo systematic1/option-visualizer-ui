@@ -7,6 +7,7 @@
   --dark-highlight: #0f3109;
   --chart-background: #000000;
   --chart-foreground: #ffffff;
+  --red: #e64640;
 }
 
 @theme inline {
@@ -45,10 +46,22 @@ body {
   background-color: var(--chart-background);
 }
 
+.red {
+  color: var(--red);
+}
+
 select {
   border: 1px solid var(--dark-highlight);
   border-radius: 4px;
   padding: 2px;
   background: var(--chart-background);
   color: var(--highlight);
+}
+
+button.nav-button {
+  border-radius: 100%;
+  padding: 10px;
+  color: var(--highlight);
+  background: var(--dark-highlight);
+  font-weight: 400;
 }
